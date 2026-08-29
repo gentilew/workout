@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
+<title>Interval Training 30/10</title>
+
+<style>
+
+html,body{
+    width:100%;
+    height:100%;
+    margin:0;
+    padding:0;
+    overflow:hidden;
+    background:#111;
+    color:white;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+body{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+#phase{
+    font-size:5vw;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+#timer{
+    font-size:25vw;
+    font-weight:bold;
+    line-height:1;
+}
+
+#serie{
+    font-size:32px;
+    margin-top:20px;
+}
+
+#startBtn{
+    margin-top:25px;
+    padding:15px 50px;
+    font-size:32px;
+    border:none;
+    border-radius:12px;
+    background:#28a745;
+    color:white;
+    cursor:pointer;
+}
+
+.work{
+    background:#1b5e20;
+}
+
+.rest{
+    background:#1565c0;
+}
+
+@media (orientation: landscape){
+
+    #timer{
+        font-size:20vw;
+    }
+
+    #phase{
+        font-size:3vw;
+    }
+
+    #startBtn{
+        font-size:24px;
+    }
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="phase">Pronto</div>
+
+<div id="timer">30</div>
+<div id="serie">Serie: 1</div>
+
+<button id="startBtn">
+    START
+</button>
+
+<script>
+
+let running=false;
+let phase="work";
+let remaining=30;
+let interval=null;
+let serie=1;
+
+const timerEl=document.getElementById("timer");
+const phaseEl=document.getElementById("phase");
+const startBtn=document.getElementById("startBtn");
+
+const audioContext=new (window.AudioContext || window.webkitAudioContext)();
+
+function beepWork(){
+
+    const oscillator=audioContext.createOscillator();
+    const gain=audioContext.createGain();
+
+    oscillator.type="square";
+    oscillator.frequency.value=900;
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.value=0.3;
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.25);
+}
+
+function beepRest(){
+
+    const oscillator=audioContext.createOscillator();
+    const gain=audioContext.createGain();
+
+    oscillator.type="triangle";
+    oscillator.frequency.value=500;
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    gain.gain.value=0.3;
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.5);
+}
+
+function updateUI(){
+
+    timerEl.textContent=remaining;
+
+    if(phase==="work"){
+        phaseEl.textContent="LAVORO";
+        document.body.className="work";
+    }
+    else{
+        phaseEl.textContent="RECUPERO";
+        document.body.className="rest";
+    }
+}
+
+function switchPhase(){
+
+    if(phase==="work"){
+
+        beepWork();
+
+		serie++;
+		document.getElementById("serie").innerHTML =
+                "Serie: "+serie;
+				
+        phase="rest";
+        remaining=10;
+    }
+    else{
+
+        beepRest();
+		
+        phase="work";
+        remaining=30;
+    }
+
+    updateUI();
+}
+
+function tick(){
+
+    remaining--;
+
+    if(remaining<=0){
+        switchPhase();
+    }
+    else{
+        updateUI();
+    }
+}
+
+function startTraining(){
+
+    if(running) return;
+
+    running=true;
+
+    startBtn.style.display="none";
+
+    audioContext.resume();
+
+    phase="work";
+    remaining=30;
+
+    updateUI();
+
+    interval=setInterval(tick,1000);
+}
+
+startBtn.addEventListener("click",startTraining);
+
+updateUI();
+
+</script>
+
+</body>
+</html>
