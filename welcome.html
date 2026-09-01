@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Welcome Engine</title>
+
+<style>
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f5f7fb;
+    margin: 0;
+    padding: 40px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+}
+
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#welcome {
+    font-size: 28px;
+    font-weight: bold;
+    color: #003366;
+    margin-bottom: 20px;
+}
+
+.info {
+    margin-top: 15px;
+    color: #555;
+}
+
+.label {
+    font-weight: bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="card">
+
+        <div id="welcome"></div>
+
+        <div class="info">
+            <span class="label">Visite totali:</span>
+            <span id="visits"></span>
+        </div>
+
+        <div class="info">
+            <span class="label">Ultima visita:</span>
+            <span id="lastVisit"></span>
+        </div>
+
+        <div class="info">
+            <span class="label">Tempo trascorso:</span>
+            <span id="elapsed"></span>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const USER_NAME = "Walter";
+
+const messages = {
+
+    firstVisit: [
+        "Benvenuto {user}! È la tua prima visita.",
+        "Piacere di conoscerti {user}. Iniziamo.",
+        "Benvenuto! Cominciamo questa esperienza insieme."
+    ],
+
+    earlyMorning: [
+        "Siamo mattinieri oggi ☕. Vediamo cosa possiamo fare.",
+        "Ben svegliato {user}. Sei tra i primi della giornata.",
+        "L'alba è appena passata. Mettiamoci al lavoro."
+    ],
+
+    morning: [
+        "Buongiorno {user}. Pronto a iniziare?",
+        "Buongiorno! Facciamo grandi cose oggi.",
+        "Una nuova giornata ricca di opportunità."
+    ],
+
+    afternoon: [
+        "Bentornato {user}. Come procede la giornata?",
+        "Buon pomeriggio. Continuiamo da dove eravamo rimasti.",
+        "Pronto per il prossimo obiettivo?"
+    ],
+
+    evening: [
+        "Ancora operativo? Ottimo spirito.",
+        "Ultimo sprint della giornata.",
+        "Facciamo un ultimo controllo prima di chiudere."
+    ],
+
+    monday: [
+        "Buon lunedì! Iniziamo la settimana con energia.",
+        "Nuova settimana, nuove opportunità.",
+        "Il lunedì è il momento perfetto per partire forte."
+    ],
+
+    frequentUser: [
+        "Bentornato {user}, ormai sei di casa.",
+        "Felice di rivederti.",
+        "Visita numero {count}. Grazie per la fedeltà."
+    ],
+
+    quickReturn: [
+        "Sei appena tornato!",
+        "Non sei stato via molto.",
+        "Bentornato, ci siamo appena salutati."
+    ],
+
+    afterDays: [
+        "Bentornato dopo qualche giorno.",
+        "È passato un po' di tempo dall'ultima visita.",
+        "Felice di rivederti dopo una pausa."
+    ],
+
+    afterWeeks: [
+        "Bentornato! È da parecchio che non ci vediamo.",
+        "Che piacere rivederti.",
+        "Sono passate alcune settimane dall'ultima visita."
+    ]
+};
+
+function randomItem(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function getElapsedText(ms) {
+
+    const minutes = Math.floor(ms / 60000);
+    const hours = Math.floor(ms / 3600000);
+    const days = Math.floor(ms / 86400000);
+
+    if (minutes < 1)
+        return "meno di un minuto";
+
+    if (minutes < 60)
+        return `${minutes} minuti`;
+
+    if (hours < 24)
+        return `${hours} ore`;
+
+    return `${days} giorni`;
+}
+
+function generateMessage(visits, elapsedMs) {
+
+    const now = new Date();
+
+    const hour = now.getHours();
+    const day = now.getDay();
+
+    let message;
+
+    if (visits === 1) {
+
+        message = randomItem(messages.firstVisit);
+
+    }
+    else if (elapsedMs && elapsedMs < 3600000) {
+
+        message = randomItem(messages.quickReturn);
+
+    }
+    else if (elapsedMs && elapsedMs > 14 * 86400000) {
+
+        message = randomItem(messages.afterWeeks);
+
+    }
+    else if (elapsedMs && elapsedMs > 3 * 86400000) {
+
+        message = randomItem(messages.afterDays);
+
+    }
+    else if (day === 1) {
+
+        message = randomItem(messages.monday);
+
+    }
+    else if (hour < 6) {
+
+        message = randomItem(messages.earlyMorning);
+
+    }
+    else if (hour < 12) {
+
+        message = randomItem(messages.morning);
+
+    }
+    else if (hour < 18) {
+
+        message = randomItem(messages.afternoon);
+
+    }
+    else {
+
+        message = randomItem(messages.evening);
+    }
+
+    if (visits > 20 && Math.random() > 0.6) {
+
+        message = randomItem(messages.frequentUser);
+    }
+
+    return message
+        .replaceAll("{user}", USER_NAME)
+        .replaceAll("{count}", visits);
+}
+
+function initWelcome() {
+
+    const now = new Date();
+
+    let visits =
+        parseInt(localStorage.getItem("visits") || "0");
+
+    let lastVisit =
+        localStorage.getItem("lastVisit");
+
+    let elapsedMs = null;
+
+    if (lastVisit) {
+
+        elapsedMs =
+            now - new Date(lastVisit);
+    }
+
+    visits++;
+
+    const welcomeMessage =
+        generateMessage(visits, elapsedMs);
+
+    document.getElementById("welcome")
+            .innerHTML = welcomeMessage;
+
+    document.getElementById("visits")
+            .innerHTML = visits;
+
+    if (lastVisit) {
+
+        document.getElementById("lastVisit")
+            .innerHTML =
+            new Date(lastVisit)
+            .toLocaleString("it-IT");
+
+        document.getElementById("elapsed")
+            .innerHTML =
+            getElapsedText(elapsedMs);
+
+    } else {
+
+        document.getElementById("lastVisit")
+            .innerHTML =
+            "Prima visita";
+
+        document.getElementById("elapsed")
+            .innerHTML =
+            "-";
+    }
+
+    localStorage.setItem(
+        "visits",
+        visits
+    );
+
+    localStorage.setItem(
+        "lastVisit",
+        now.toISOString()
+    );
+}
+
+initWelcome();
+
+</script>
+
+</body>
+</html>
