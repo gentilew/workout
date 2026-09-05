@@ -84,7 +84,7 @@ body{
 
 <div id="phase">Pronto</div>
 
-<div id="timer">30</div>
+<div id="timer">40</div>
 <div id="serie">Serie: 1</div>
 
 <button id="startBtn">
@@ -95,7 +95,7 @@ body{
 
 let running=false;
 let phase="work";
-let remaining=30;
+let remaining=40;
 let interval=null;
 let serie=1;
 
@@ -164,14 +164,14 @@ function switchPhase(){
                 "Serie: "+serie;
 				
         phase="rest";
-        remaining=10;
+        remaining=15;
     }
     else{
 
         beepRest();
 		
         phase="work";
-        remaining=30;
+        remaining=40;
     }
 
     updateUI();
@@ -200,7 +200,7 @@ function startTraining(){
     audioContext.resume();
 
     phase="work";
-    remaining=30;
+    remaining=40;
 
     updateUI();
 
